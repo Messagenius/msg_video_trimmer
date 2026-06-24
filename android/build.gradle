@@ -1,0 +1,60 @@
+group = "com.messagenius.msg_video_trimmer"
+version = "1.0"
+
+buildscript {
+    ext.kotlin_version = "1.9.22"
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.2.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    if (project.android.hasProperty("namespace")) {
+        namespace = "com.messagenius.msg_video_trimmer"
+    }
+
+    compileSdk = 35
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+        test.java.srcDirs += "src/test/kotlin"
+    }
+
+    defaultConfig {
+        minSdk = 21
+    }
+
+    dependencies {
+        def media3_version = "1.5.1"
+
+        implementation "androidx.media3:media3-common:$media3_version"
+        implementation "androidx.media3:media3-transformer:$media3_version"
+        implementation "androidx.media3:media3-effect:$media3_version"
+
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
+    }
+}

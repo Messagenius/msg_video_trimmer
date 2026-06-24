@@ -1,0 +1,49 @@
+name: msg_video_trimmer
+description: "Cross-platform, FFmpeg-free native video trimming for Flutter (iOS, macOS, Android, Windows, Web). Type-safe via Pigeon."
+version: 1.0.0
+homepage: https://github.com/messagenius/msg_video_trimmer
+repository: https://github.com/messagenius/msg_video_trimmer
+topics:
+  - video
+  - trimmer
+  - media
+  - native
+
+license: MIT
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  pigeon: ^22.7.0
+  mockito: ^5.4.4
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.messagenius.msg_video_trimmer
+        pluginClass: MsgVideoTrimmerPlugin
+      ios:
+        pluginClass: MsgVideoTrimmerPlugin
+        sharedDarwinSource: true
+      macos:
+        pluginClass: MsgVideoTrimmerPlugin
+        sharedDarwinSource: true
+      windows:
+        pluginClass: MsgVideoTrimmerPluginCApi
+      web:
+        pluginClass: MsgVideoTrimmerWeb
+        fileName: src/web/msg_video_trimmer_web.dart
