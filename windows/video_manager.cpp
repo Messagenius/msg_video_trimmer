@@ -1,5 +1,12 @@
 #include "video_manager.h"
 
+#define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Media.Editing.h>
 #include <winrt/Windows.Media.MediaProperties.h>
@@ -8,6 +15,12 @@
 
 #include <chrono>
 #include <filesystem>
+
+// Some Windows SDK headers define HD as a macro (e.g. old GDI/multimedia
+// headers), which would silently corrupt VideoEncodingQuality::HD.
+#ifdef HD
+#undef HD
+#endif
 
 namespace msg_video_trimmer {
 
@@ -107,7 +120,7 @@ void VideoManager::TrimVideo(
           name, CreationCollisionOption::ReplaceExisting);
 
       auto profile =
-          MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD);
+          MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD1080p);
       if (!include_audio) {
         // Drop the audio stream entirely for a true audio removal.
         profile.Audio(nullptr);
