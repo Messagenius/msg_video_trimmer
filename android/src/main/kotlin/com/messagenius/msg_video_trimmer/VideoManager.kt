@@ -101,6 +101,10 @@ class VideoManager {
 
                 transformer = builtTransformer
 
+                // Kick off the export; without this the listener never fires and
+                // the coroutine would hang forever.
+                builtTransformer.start(editedMediaItem, outputFile.absolutePath)
+
                 // Poll progress on the main thread until the export resolves.
                 val progressHolder = ProgressHolder()
                 val ticker = object : Runnable {
