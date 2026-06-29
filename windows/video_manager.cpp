@@ -121,6 +121,20 @@ void VideoManager::TrimVideo(
 
       auto profile =
           MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD1080p);
+
+      // Match the source video dimensions to avoid green line artifacts caused
+      // by resolution mismatch between source and the fixed 1080p profile.
+      auto source_props = clip.GetVideoEncodingProperties();
+      if (source_props) {
+        profile.Video().Width(source_props.Width());
+        profile.Video().Height(source_props.Height());
+        profile.Video().Bitrate(source_props.Bitrate());
+        profile.Video().FrameRate().Numerator(
+            source_props.FrameRate().Numerator());
+        profile.Video().FrameRate().Denominator(
+            source_props.FrameRate().Denominator());
+      }
+
       if (!include_audio) {
         // Drop the audio stream entirely for a true audio removal.
         profile.Audio(nullptr);
