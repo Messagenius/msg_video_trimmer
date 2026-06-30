@@ -2,6 +2,7 @@
 #define MSG_VIDEO_TRIMMER_VIDEO_MANAGER_H_
 
 #include <winrt/Windows.Media.Editing.h>
+#include <winrt/Windows.Storage.h>
 
 #include <functional>
 #include <optional>
@@ -35,6 +36,7 @@ class VideoManager {
 
  private:
   winrt::Windows::Media::Editing::MediaClip current_clip_{nullptr};
+  winrt::Windows::Storage::StorageFile current_file_{nullptr};
 };
 
 }  // namespace msg_video_trimmer

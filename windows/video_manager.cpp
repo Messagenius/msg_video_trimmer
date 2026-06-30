@@ -66,6 +66,7 @@ void VideoManager::LoadVideo(
       auto file = co_await StorageFile::GetFileFromPathAsync(wpath);
       auto clip = co_await MediaClip::CreateFromFileAsync(file);
       self->current_clip_ = clip;
+      self->current_file_ = file;
       cb(std::nullopt);
     } catch (const winrt::hresult_error& e) {
       cb(Narrow(e.message()));
@@ -89,7 +90,8 @@ void VideoManager::TrimVideo(
     return;
   }
 
-  [](MediaClip source, int64_t start_ms, int64_t end_ms, bool include_audio,
+  [](MediaClip source, StorageFile source_file, int64_t start_ms,
+     int64_t end_ms, bool include_audio,
      std::function<void(double)> on_progress,
      std::function<void(std::optional<std::string>, std::optional<std::string>)>
          cb) -> fire_and_forget {
@@ -119,20 +121,28 @@ void VideoManager::TrimVideo(
       auto out_file = co_await folder.CreateFileAsync(
           name, CreationCollisionOption::ReplaceExisting);
 
-      auto profile =
-          MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD1080p);
-
-      // Match the source video dimensions to avoid green line artifacts caused
-      // by resolution mismatch between source and the fixed 1080p profile.
-      auto source_props = clip.GetVideoEncodingProperties();
-      if (source_props) {
-        profile.Video().Width(source_props.Width());
-        profile.Video().Height(source_props.Height());
-        profile.Video().Bitrate(source_props.Bitrate());
-        profile.Video().FrameRate().Numerator(
-            source_props.FrameRate().Numerator());
-        profile.Video().FrameRate().Denominator(
-            source_props.FrameRate().Denominator());
+      // Derive the encoding profile directly from the source file so that
+      // width/height/codec/color info match the actual display orientation
+      // (rotation metadata is already resolved). This prevents the green-line
+      // artifact seen when the encoder profile dimensions differ from the frame
+      // size that MediaComposition emits for rotated videos.
+      MediaEncodingProfile profile{nullptr};
+      try {
+        profile = co_await MediaEncodingProfile::CreateFromFileAsync(source_file);
+      } catch (...) {
+        // Fallback: build an MP4 profile and copy the raw track properties.
+        // This covers unusual containers where CreateFromFileAsync fails.
+        profile = MediaEncodingProfile::CreateMp4(VideoEncodingQuality::HD1080p);
+        auto source_props = clip.GetVideoEncodingProperties();
+        if (source_props) {
+          profile.Video().Width(source_props.Width());
+          profile.Video().Height(source_props.Height());
+          profile.Video().Bitrate(source_props.Bitrate());
+          profile.Video().FrameRate().Numerator(
+              source_props.FrameRate().Numerator());
+          profile.Video().FrameRate().Denominator(
+              source_props.FrameRate().Denominator());
+        }
       }
 
       if (!include_audio) {
@@ -157,8 +167,8 @@ void VideoManager::TrimVideo(
     } catch (...) {
       cb(std::nullopt, std::string("Failed to trim video"));
     }
-  }(current_clip_, start_ms, end_ms, include_audio, std::move(on_progress),
-    std::move(done));
+  }(current_clip_, current_file_, start_ms, end_ms, include_audio,
+    std::move(on_progress), std::move(done));
 }
 
 void VideoManager::ClearCache() {
